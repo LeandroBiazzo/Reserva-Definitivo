@@ -1,154 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGENDAMENTO DE SALAS</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            text-align: center;
-            color: #333;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-top: 10px;
-        }
-        input, select {
-            padding: 8px;
-            margin-top: 5px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .hidden {
-            display: none;
-        }
-        .agendamento-item {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        .edit-button, .delete-button {
-            padding: 5px 10px;
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        .edit-button {
-            background-color: #008CBA;
-            color: white;
-        }
-        .delete-button {
-            background-color: #f44336;
-            color: white;
-        }
-    </style>
+  <!-- O cabeçalho permanece o mesmo -->
+  <!-- ... -->
 </head>
 <body>
-    <div class="container">
-        <h1>AGENDAMENTO DE SALAS</h1>
+  <!-- O corpo do HTML permanece o mesmo -->
+  <!-- ... -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    // Configuração do GitHub
+    const GITHUB_TOKEN = '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';
+    const REPO_OWNER = 'LeandroBiazzo';
+    const REPO_NAME = 'Reserva-Definitivo';
+    const FILE_PATH = 'agendamentos.json';
+
+    // O resto das variáveis permanece o mesmo
+    const form = document.getElementById('agendamentoForm');
+    // ...
+
+    // Funções para interagir com o GitHub
+    async function getAgendamentos() {
+      try {
+        const response = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+          headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+        });
+        const content = atob(response.data.content);
+        return { data: JSON.parse(content), sha: response.data.sha };
+      } catch (error) {
+        console.error('Erro ao obter agendamentos:', error);
+        return { data: [], sha: null };
+      }
+    }
+
+    async function saveAgendamentos(agendamentos, sha) {
+      try {
+        const content = btoa(JSON.stringify(agendamentos, null, 2));
+        await axios.put(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+          message: 'Atualizar agendamentos',
+          content: content,
+          sha: sha
+        }, {
+          headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+        });
+      } catch (error) {
+        console.error('Erro ao salvar agendamentos:', error);
+        throw error;
+      }
+    }
+
+    // Função para carregar agendamentos do GitHub
+    async function carregarAgendamentos() {
+      try {
+        const { data, sha } = await getAgendamentos();
+        agendamentos = data;
+        atualizarListaAgendamentos();
+      } catch (error) {
+        console.error('Erro ao carregar agendamentos:', error);
+      }
+    }
+
+    // Chamar carregarAgendamentos no início para carregar os agendamentos existentes
+    carregarAgendamentos();
+
+    // O resto das funções permanece o mesmo, mas precisamos modificar algumas para usar o GitHub
+
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // ... (o código para capturar os dados do formulário permanece o mesmo)
+
+      try {
+        const { data: agendamentosAtuais, sha } = await getAgendamentos();
         
-        <form id="agendamentoForm">
-            <label for="finalidade">Finalidade:</label>
-            <select id="finalidade" required>
-                <option value="">Selecione a finalidade</option>
-                <option value="AULA">AULA</option>
-                <option value="TCC">TCC</option>
-                <option value="PROVA">PROVA</option>
-                <option value="DISCUSSÃO DE CASO">DISCUSSÃO DE CASO</option>
-                <option value="MANUTENÇÃO">MANUTENÇÃO</option>
-            </select>
+        if (editIndex >= 0) {
+          agendamentosAtuais[editIndex] = { finalidade, solicitante, nomeSolicitante, sala, data: dataUTC.toISOString(), hora, tema, banca, orientador, motivo };
+          editIndex = -1;
+          agendarButton.textContent = 'AGENDAR';
+        } else {
+          agendamentosAtuais.push({ finalidade, solicitante, nomeSolicitante, sala, data: dataUTC.toISOString(), hora, tema, banca, orientador, motivo });
+        }
 
-            <div id="tccFields" class="hidden">
-                <label for="temaTcc">Tema TCC:</label>
-                <input type="text" id="temaTcc">
-                
-                <label for="bancaTcc">Integrantes da Banca:</label>
-                <input type="text" id="bancaTcc">
-                
-                <label for="orientadorTcc">Orientador:</label>
-                <input type="text" id="orientadorTcc">
-            </div>
+        await saveAgendamentos(agendamentosAtuais, sha);
+        agendamentos = agendamentosAtuais;
+        atualizarListaAgendamentos();
+        alert('AGENDAMENTO REALIZADO COM SUCESSO!');
 
-            <div id="manutencaoFields" class="hidden">
-                <label for="motivoManutencao">Motivo da Manutenção:</label>
-                <input type="text" id="motivoManutencao">
-            </div>
+        form.reset();
+        tccFields.classList.add('hidden');
+        manutencaoFields.classList.add('hidden');
+      } catch (error) {
+        console.error('Erro ao salvar agendamento:', error);
+        alert('ERRO AO SALVAR AGENDAMENTO. POR FAVOR, TENTE NOVAMENTE.');
+      }
+    });
 
-            <label for="solicitante">Solicitante:</label>
-            <select id="solicitante" required>
-                <option value="">Selecione o tipo de solicitante</option>
-                <option value="PROFESSOR">PROFESSOR</option>
-                <option value="RESIDENTE">RESIDENTE</option>
-                <option value="ALUNO">ALUNO</option>
-                <option value="RESP. TÉCNICO">RESP. TÉCNICO</option>
-                <option value="GERENTE">GERENTE</option>
-            </select>
+    // Modificar a função excluirAgendamento para usar o GitHub
+    async function excluirAgendamento(index, nomeSolicitante) {
+      const nomeUsuarioAtual = prompt('PARA EXCLUIR, DIGITE O SEU NOME:');
 
-            <label for="nomeSolicitante">Nome do Solicitante:</label>
-            <input type="text" id="nomeSolicitante" required>
+      if (nomeUsuarioAtual === nomeSolicitante) {
+        try {
+          const { data: agendamentosAtuais, sha } = await getAgendamentos();
+          agendamentosAtuais.splice(index, 1);
+          await saveAgendamentos(agendamentosAtuais, sha);
+          agendamentos = agendamentosAtuais;
+          atualizarListaAgendamentos();
+          alert('AGENDAMENTO EXCLUÍDO COM SUCESSO!');
+        } catch (error) {
+          console.error('Erro ao excluir agendamento:', error);
+          alert('ERRO AO EXCLUIR AGENDAMENTO. POR FAVOR, TENTE NOVAMENTE.');
+        }
+      } else {
+        alert('VOCÊ SÓ PODE EXCLUIR SEUS PRÓPRIOS AGENDAMENTOS.');
+      }
+    }
 
-            <label for="sala">Sala:</label>
-            <select id="sala" required>
-                <option value="Sala 1">Sala 1</option>
-                <option value="Sala 2">Sala 2</option>
-            </select>
+    // O resto do código permanece o mesmo
+    // ...
 
-            <label for="data">Data:</label>
-            <input type="date" id="data" required>
-
-            <label for="hora">Hora:</label>
-            <input type="time" id="hora" required>
-
-            <button type="submit" id="agendarButton">AGENDAR</button>
-        </form>
-
-        <h2>AGENDAMENTOS CONFIRMADOS:</h2>
-        <div id="listaAgendamentos"></div>
-
-        <button id="verMes">VER AGENDAMENTOS MENSAIS</button>
-
-        <div id="planner" class="hidden">
-            <h2>PLANNER MENSAL</h2>
-            <table id="plannerTable">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Agendamentos</th>
-                    </tr>
-                </thead>
-                <tbody id="plannerBody"></tbody>
-            </table>
-            <button id="voltar">VOLTAR</button>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-    <script src="app.js"></script>
+  </script>
 </body>
 </html>
