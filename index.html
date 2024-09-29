@@ -1,125 +1,409 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- O cabeçalho permanece o mesmo -->
-  <!-- ... -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGENDAMENTO DE SALAS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      text-transform: uppercase;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input, select {
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .hidden {
+      display: none;
+    }
+    .agendamento-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .delete-button {
+      background-color: #dc3545;
+    }
+    .delete-button:hover {
+      background-color: #c82333;
+    }
+    .agendamento-visualizacao {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+    }
+    .agendamento-item {
+      margin-bottom: 10px;
+    }
+    .agendamento-item strong {
+      color: #333;
+    }
+    .agendamentos-lista {
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
-  <!-- O corpo do HTML permanece o mesmo -->
-  <!-- ... -->
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-  <script>
-    // Configuração do GitHub
-    const GITHUB_TOKEN = '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';
-    const REPO_OWNER = 'LeandroBiazzo';
-    const REPO_NAME = 'Reserva-Definitivo';
-    const FILE_PATH = 'agendamentos.json';
+  <div class="container">
+    <h1>AGENDAMENTO DE SALAS</h1>
+    <form id="agendamentoForm">
+      
+      <label for="finalidade">FINALIDADE:</label>
+      <select id="finalidade" required>
+        <option value="">SELECIONE A FINALIDADE</option>
+        <option value="AULA">AULA</option>
+        <option value="TCC">TCC</option>
+        <option value="PROVA">PROVA</option>
+        <option value="DISCUSSÃO DE CASO">DISCUSSÃO DE CASO</option>
+        <option value="REUNIÃO">REUNIÃO</option>
+        <option value="MANUTENÇÃO">MANUTENÇÃO</option>
+      </select>
 
-    // O resto das variáveis permanece o mesmo
-    const form = document.getElementById('agendamentoForm');
-    // ...
+      <!-- Campos adicionais para TCC -->
+      <div id="tccFields" class="hidden">
+        <label for="nomeAluno">NOME DO ALUNO:</label>
+        <input type="text" id="nomeAluno" placeholder="DIGITE O NOME DO ALUNO">
 
-    // Funções para interagir com o GitHub
-    async function getAgendamentos() {
-      try {
-        const response = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-          headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-        });
-        const content = atob(response.data.content);
-        return { data: JSON.parse(content), sha: response.data.sha };
-      } catch (error) {
-        console.error('Erro ao obter agendamentos:', error);
-        return { data: [], sha: null };
-      }
+        <label for="temaTcc">TEMA TCC:</label>
+        <input type="text" id="temaTcc" placeholder="DIGITE O TEMA DO TCC">
+
+        <label for="bancaTcc">INTEGRANTES DA BANCA:</label>
+        <input type="text" id="bancaTcc" placeholder="DIGITE OS INTEGRANTES DA BANCA">
+
+        <label for="orientadorTcc">ORIENTADOR:</label>
+        <select id="orientadorTcc">
+          <option value="">SELECIONE O ORIENTADOR</option>
+        </select>
+      </div>
+
+      <!-- Campos adicionais para MANUTENÇÃO -->
+      <div id="manutencaoFields" class="hidden">
+        <label for="motivoManutencao">MOTIVO DA MANUTENÇÃO:</label>
+        <input type="text" id="motivoManutencao" placeholder="DIGITE O MOTIVO DA MANUTENÇÃO">
+      </div>
+
+      <!-- Campos adicionais para SOLICITANTE -->
+      <div id="solicitanteFields" class="hidden">
+        <label for="solicitante">SOLICITANTE:</label>
+        <input type="text" id="solicitante" placeholder="DIGITE O NOME DO SOLICITANTE">
+      </div>
+
+      <div id="nomeSolicitanteField" class="hidden">
+        <label for="nomeSolicitante">NOME DO SOLICITANTE:</label>
+        <input type="text" id="nomeSolicitante" placeholder="DIGITE O NOME DO SOLICITANTE">
+      </div>
+
+      <!-- Campos comuns -->
+      <label for="sala">ESCOLHA A SALA:</label>
+      <select id="sala" required>
+        <option value="Sala 1">SALA 1</option>
+        <option value="Sala 2">SALA 2</option>
+      </select>
+
+      <label for="data">ESCOLHA A DATA:</label>
+      <input type="date" id="data" required>
+
+      <label for="horaInicio">HORÁRIO DE INÍCIO:</label>
+      <input type="time" id="horaInicio" required>
+
+      <label for="horaFim">HORÁRIO DE FIM:</label>
+      <input type="time" id="horaFim" required>
+
+      <button type="submit" id="agendarButton">AGENDAR</button>
+    </form>
+
+    <div class="agendamentos-lista" id="agendamentosLista">
+      <!-- Agendamentos aparecerão aqui -->
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBw3KtxT-386kduvlDLyCHWYsdc_Ny3j9Y",
+      authDomain: "agendamento-de-sala-c348d.firebaseapp.com",
+      projectId: "agendamento-de-sala-c348d",
+      storageBucket: "agendamento-de-sala-c348d.appspot.com",
+      messagingSenderId: "1051108935402",
+      appId: "1:1051108935402:web:d87c0ce75b27a6908f3993"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const agendamentosLista = document.getElementById('agendamentosLista');
+    let agendamentoId = null;
+
+    // Lista de orientadores e solicitantes
+    const orientadores = [
+      'Bruna Marcele', 'Danielle Bacarelli', 'Diana Costa', 'Douglas Caragelasco', 
+      'João Flávio', 'Lívia Biazzo', 'Mariana Miranda', 'Marilia Filiponi', 
+      'Marta Luppi', 'Michele Barros', 'Paula Guimarães', 'Paulo Griska', 
+      'Paulo Anselmo', 'Rafael Neves', 'Raphaela Brito'
+    ];
+
+    const solicitantes = [
+      'Leandro Biazzo', 'Ellen Gorne'
+    ];
+
+    // Preenche a lista de orientadores no campo ORIENTADOR
+    function preencherOrientadores() {
+      const orientadorSelect = document.getElementById('orientadorTcc');
+      orientadorSelect.innerHTML = '<option value="">SELECIONE O ORIENTADOR</option>'; // Limpa e adiciona o placeholder
+      orientadores.forEach(orientador => {
+        const option = document.createElement('option');
+        option.value = orientador;
+        option.textContent = orientador;
+        orientadorSelect.appendChild(option);
+      });
     }
 
-    async function saveAgendamentos(agendamentos, sha) {
-      try {
-        const content = btoa(JSON.stringify(agendamentos, null, 2));
-        await axios.put(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-          message: 'Atualizar agendamentos',
-          content: content,
-          sha: sha
-        }, {
-          headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-        });
-      } catch (error) {
-        console.error('Erro ao salvar agendamentos:', error);
-        throw error;
-      }
+    // Função para ocultar todos os campos dinâmicos
+    function ocultarTodosCampos() {
+      document.getElementById('tccFields').classList.add('hidden');
+      document.getElementById('manutencaoFields').classList.add('hidden');
+      document.getElementById('solicitanteFields').classList.add('hidden');
+      document.getElementById('nomeSolicitanteField').classList.add('hidden');
     }
 
-    // Função para carregar agendamentos do GitHub
-    async function carregarAgendamentos() {
-      try {
-        const { data, sha } = await getAgendamentos();
-        agendamentos = data;
-        atualizarListaAgendamentos();
-      } catch (error) {
-        console.error('Erro ao carregar agendamentos:', error);
-      }
-    }
+    // Exibe campos específicos com base na finalidade selecionada
+    document.getElementById('finalidade').addEventListener('change', function () {
+      const finalidade = this.value;
+      ocultarTodosCampos(); // Oculta todos os campos antes de exibir o correto
 
-    // Chamar carregarAgendamentos no início para carregar os agendamentos existentes
-    carregarAgendamentos();
-
-    // O resto das funções permanece o mesmo, mas precisamos modificar algumas para usar o GitHub
-
-    form.addEventListener('submit', async function(event) {
-      event.preventDefault();
-
-      // ... (o código para capturar os dados do formulário permanece o mesmo)
-
-      try {
-        const { data: agendamentosAtuais, sha } = await getAgendamentos();
-        
-        if (editIndex >= 0) {
-          agendamentosAtuais[editIndex] = { finalidade, solicitante, nomeSolicitante, sala, data: dataUTC.toISOString(), hora, tema, banca, orientador, motivo };
-          editIndex = -1;
-          agendarButton.textContent = 'AGENDAR';
-        } else {
-          agendamentosAtuais.push({ finalidade, solicitante, nomeSolicitante, sala, data: dataUTC.toISOString(), hora, tema, banca, orientador, motivo });
-        }
-
-        await saveAgendamentos(agendamentosAtuais, sha);
-        agendamentos = agendamentosAtuais;
-        atualizarListaAgendamentos();
-        alert('AGENDAMENTO REALIZADO COM SUCESSO!');
-
-        form.reset();
-        tccFields.classList.add('hidden');
-        manutencaoFields.classList.add('hidden');
-      } catch (error) {
-        console.error('Erro ao salvar agendamento:', error);
-        alert('ERRO AO SALVAR AGENDAMENTO. POR FAVOR, TENTE NOVAMENTE.');
+      // Mostrar campos com base na finalidade
+      if (finalidade === 'TCC') {
+        document.getElementById('tccFields').classList.remove('hidden');
+        preencherOrientadores(); // Preenche os orientadores quando "TCC" for selecionado
+      } else if (finalidade === 'MANUTENÇÃO') {
+        document.getElementById('manutencaoFields').classList.remove('hidden');
+        document.getElementById('solicitanteFields').classList.remove('hidden');
+      } else if (finalidade === 'REUNIÃO') {
+        document.getElementById('nomeSolicitanteField').classList.remove('hidden');
+        document.getElementById('solicitanteFields').classList.remove('hidden');
+      } else if (finalidade === 'AULA' || finalidade === 'PROVA' || finalidade === 'DISCUSSÃO DE CASO') {
+        document.getElementById('solicitanteFields').classList.remove('hidden');
       }
     });
 
-    // Modificar a função excluirAgendamento para usar o GitHub
-    async function excluirAgendamento(index, nomeSolicitante) {
-      const nomeUsuarioAtual = prompt('PARA EXCLUIR, DIGITE O SEU NOME:');
-
-      if (nomeUsuarioAtual === nomeSolicitante) {
-        try {
-          const { data: agendamentosAtuais, sha } = await getAgendamentos();
-          agendamentosAtuais.splice(index, 1);
-          await saveAgendamentos(agendamentosAtuais, sha);
-          agendamentos = agendamentosAtuais;
-          atualizarListaAgendamentos();
-          alert('AGENDAMENTO EXCLUÍDO COM SUCESSO!');
-        } catch (error) {
-          console.error('Erro ao excluir agendamento:', error);
-          alert('ERRO AO EXCLUIR AGENDAMENTO. POR FAVOR, TENTE NOVAMENTE.');
-        }
-      } else {
-        alert('VOCÊ SÓ PODE EXCLUIR SEUS PRÓPRIOS AGENDAMENTOS.');
-      }
+    // Função para validar se a data escolhida é hoje ou futura
+    function validarData(data) {
+      const dataSelecionada = new Date(data);
+      const dataAtual = new Date();
+      dataAtual.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas as datas
+      return dataSelecionada >= dataAtual;
     }
 
-    // O resto do código permanece o mesmo
-    // ...
+    // Função para verificar conflitos de horário
+    async function verificarConflito(sala, data, horaInicio, horaFim) {
+      const q = query(collection(db, 'agendamentos'), where('data', '==', data), where('sala', '==', sala));
+      const querySnapshot = await getDocs(q);
 
+      // Converter horários para minutos desde meia-noite
+      const inicioNovo = converterParaMinutos(horaInicio);
+      const fimNovo = converterParaMinutos(horaFim);
+
+      let conflito = false;
+      querySnapshot.forEach((doc) => {
+        const agendamento = doc.data();
+        const inicioExistente = converterParaMinutos(agendamento.horaInicio);
+        const fimExistente = converterParaMinutos(agendamento.horaFim);
+
+        // Verifica se há sobreposição de horários
+        if ((inicioNovo >= inicioExistente && inicioNovo < fimExistente) ||
+            (fimNovo > inicioExistente && fimNovo <= fimExistente) ||
+            (inicioNovo <= inicioExistente && fimNovo >= fimExistente)) {
+          conflito = true;
+        }
+      });
+
+      return conflito;
+    }
+
+    // Função auxiliar para converter horário para minutos desde meia-noite
+    function converterParaMinutos(hora) {
+      const [h, m] = hora.split(':');
+      return parseInt(h) * 60 + parseInt(m);
+    }
+
+    document.getElementById('agendamentoForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const data = document.getElementById('data').value;
+      const horaInicio = document.getElementById('horaInicio').value;
+      const horaFim = document.getElementById('horaFim').value;
+      const sala = document.getElementById('sala').value;
+
+      // Validação para não permitir datas passadas
+      if (!validarData(data)) {
+        alert('Você não pode agendar uma data passada. Escolha a data de hoje ou uma data futura.');
+        return;
+      }
+
+      // Verificar conflito de sala no mesmo horário
+      const conflito = await verificarConflito(sala, data, horaInicio, horaFim);
+      if (conflito) {
+        alert('Já existe um agendamento para esta sala que conflita com o horário escolhido. Escolha outro horário ou sala.');
+        return;
+      }
+
+      const finalidade = document.getElementById('finalidade').value;
+      const solicitante = document.getElementById('solicitante').value;
+      const nomeSolicitante = document.getElementById('nomeSolicitante').value || '';
+      const nomeAluno = document.getElementById('nomeAluno').value || '';
+
+      const agendamento = {
+        finalidade,
+        solicitante,
+        nomeSolicitante,
+        nomeAluno,
+        sala,
+        data,
+        horaInicio,
+        horaFim
+      };
+
+      try {
+        if (agendamentoId) {
+          await updateDoc(doc(db, "agendamentos", agendamentoId), agendamento);
+          alert('Agendamento atualizado com sucesso!');
+          document.getElementById(`agendamento-${agendamentoId}`).remove(); 
+          agendamentoId = null;
+        } else {
+          await addDoc(collection(db, 'agendamentos'), agendamento);
+          alert('Agendamento realizado com sucesso!');
+        }
+        document.getElementById('agendamentoForm').reset();
+        carregarAgendamentos(); 
+
+      } catch (error) {
+        console.error('Erro ao salvar o agendamento:', error);
+        alert('Erro ao salvar o agendamento, tente novamente.');
+      }
+    });
+
+    async function carregarAgendamentos() {
+      agendamentosLista.innerHTML = ''; 
+      const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+      const agendamentos = [];
+
+      querySnapshot.forEach((doc) => {
+        const agendamento = doc.data();
+        agendamentos.push({ id: doc.id, ...agendamento });
+      });
+
+      // Ordena os agendamentos por data e hora de início
+      agendamentos.sort((a, b) => {
+        const dateA = new Date(`${a.data}T${a.horaInicio}`);
+        const dateB = new Date(`${b.data}T${b.horaInicio}`);
+        return dateA - dateB;
+      });
+
+      agendamentos.forEach(({ id, ...agendamento }) => {
+        adicionarVisualizacao(id, agendamento);
+      });
+    }
+
+    function adicionarVisualizacao(id, agendamento) {
+      const novoAgendamento = document.createElement('div');
+      novoAgendamento.classList.add('agendamento-visualizacao');
+      novoAgendamento.id = `agendamento-${id}`;
+
+      // Formatar a data no formato dd/mm/aa
+      const [ano, mes, dia] = agendamento.data.split('-');
+      const dataFormatada = `${dia}/${mes}/${ano.slice(-2)}`;
+
+      novoAgendamento.innerHTML = `
+        <h3>Agendamento Reservado</h3>
+        <div class="agendamento-item"><strong>Finalidade:</strong> ${agendamento.finalidade}</div>
+        <div class="agendamento-item"><strong>Solicitante:</strong> ${agendamento.solicitante || ''}</div>
+        ${agendamento.finalidade === 'REUNIÃO' ? `<div class="agendamento-item"><strong>Nome do Solicitante:</strong> ${agendamento.nomeSolicitante || ''}</div>` : ''}
+        ${agendamento.finalidade === 'TCC' ? `<div class="agendamento-item"><strong>Nome do Aluno:</strong> ${agendamento.nomeAluno || ''}</div>` : ''}
+        <div class="agendamento-item"><strong>Sala:</strong> ${agendamento.sala}</div>
+        <div class="agendamento-item"><strong>Data:</strong> ${dataFormatada}</div>
+        <div class="agendamento-item"><strong>Hora de Início:</strong> ${agendamento.horaInicio}</div>
+        <div class="agendamento-item"><strong>Hora de Fim:</strong> ${agendamento.horaFim}</div>
+        <div class="agendamento-buttons">
+          <button onclick="editarAgendamento('${id}')">EDITAR AGENDAMENTO</button>
+          <button onclick="excluirAgendamento('${id}')" class="delete-button">EXCLUIR AGENDAMENTO</button>
+        </div>
+      `;
+
+      agendamentosLista.appendChild(novoAgendamento);
+    }
+
+    window.editarAgendamento = async function(id) {
+      const docRef = doc(db, "agendamentos", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const agendamento = docSnap.data();
+        document.getElementById('finalidade').value = agendamento.finalidade;
+        document.getElementById('solicitante').value = agendamento.solicitante || '';
+        document.getElementById('nomeSolicitante').value = agendamento.nomeSolicitante || '';
+        document.getElementById('nomeAluno').value = agendamento.nomeAluno || '';
+        document.getElementById('sala').value = agendamento.sala;
+        document.getElementById('data').value = agendamento.data;
+        document.getElementById('horaInicio').value = agendamento.horaInicio;
+        document.getElementById('horaFim').value = agendamento.horaFim;
+        agendamentoId = id;
+
+        // Mostrar campos específicos baseados na finalidade
+        document.getElementById('finalidade').dispatchEvent(new Event('change'));
+      }
+    };
+
+    window.excluirAgendamento = async function(id) {
+      if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+        await deleteDoc(doc(db, "agendamentos", id));
+        document.getElementById(`agendamento-${id}`).remove();
+        alert('Agendamento excluído com sucesso!');
+      }
+    };
+
+    carregarAgendamentos();
   </script>
+
 </body>
 </html>
